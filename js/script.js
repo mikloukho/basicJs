@@ -1,78 +1,98 @@
-/* Задание на урок:
+/* Задания на урок:
 
-1) Автоматизировать вопросы пользователю про фильмы при помощи цикла
+1) Реализовать функционал, что после заполнения формы и нажатия кнопки "Подтвердить" - 
+новый фильм добавляется в список. Страница не должна перезагружаться.
+Новый фильм должен добавляться в movieDB.movies.
+Для получения доступа к значению input - обращаемся к нему как input.value;
+P.S. Здесь есть несколько вариантов решения задачи, принимается любой, но рабочий.
 
-2) Сделать так, чтобы пользователь не мог оставить ответ в виде пустой строки,
-отменить ответ или ввести название фильма длинее, чем 50 символов. Если это происходит - 
-возвращаем пользователя к вопросам опять
+2) Если название фильма больше, чем 21 символ - обрезать его и добавить три точки
 
-3) При помощи условий проверить  personalMovieDB.count, и если он меньше 10 - вывести сообщение
-"Просмотрено довольно мало фильмов", если от 10 до 30 - "Вы классический зритель", а если больше - 
-"Вы киноман". А если не подошло ни к одному варианту - "Произошла ошибка"
+3) При клике на мусорную корзину - элемент будет удаляться из списка (сложно)
 
-4) Потренироваться и переписать цикл еще двумя способами*/
+4) Если в форме стоит галочка "Сделать любимым" - в консоль вывести сообщение: 
+"Добавляем любимый фильм"
 
-"use strict";
+5) Фильмы должны быть отсортированы по алфавиту */
 
+'use strict';
 
-let personalMovieDB = {
-    count: null,
-    movies: {},
-    actors: {},
-    genres: [],
-    privat: false
-};
+document.addEventListener('DOMContentLoaded', () => {
 
-function start() {
-    personalMovieDB.count = prompt('Сколько фильмов вы уже посмотрели?');
-    if (personalMovieDB.count == '' || personalMovieDB.count == null || isNaN(personalMovieDB.count)) {
-        start();
-    }
-}
+    const movieDB = {
+        movies: [
+            "Логан",
+            "Лига справедливости",
+            "Ла-ла лэнд",
+            "Одержимость",
+            "Скотт Пилигрим против...",
+        ]
+    };
+    const adv = document.querySelectorAll('.promo__adv img'),
+        poster = document.querySelector('.promo__bg'),
+        genre = poster.querySelector('.promo__genre'),
+        movieList = document.querySelector('.promo__interactive-list'),
+        addForm = document.querySelector('form.add'),
+        addInput = addForm.querySelector('.adding__input'),
+        checkbox = addForm.querySelector('[type = "checkbox"]');
+    
+    addForm.addEventListener('submit', (event) => {
+        event.preventDefault();
 
-start();
+        let newFilm = addInput.value;
+        if (newFilm){
 
-function rememberMyFilms() {
-    for (let i = 0; i < 2; i++) {
-        const nameOfFilms = prompt('Один из последних просмотренных фильмов?', '');
-        const raitingOfFilms = prompt('На сколько оцените его?', '');
-        if (nameOfFilms == '' || raitingOfFilms == '' || nameOfFilms == null || raitingOfFilms == null) {
-            i--;
-        } else {
-            personalMovieDB.movies[nameOfFilms] = raitingOfFilms;
+            if (newFilm.length > 21) {
+                newFilm = `${newFilm.slice(0, 22)}...`;
+            }
+            const favorite = checkbox.checked;
+            if (favorite) {
+                console.log('Добавляем любимый фильм');
+            }
+            movieDB.movies.push(newFilm);
+            createMovieList(movieDB.movies, movieList);
+            event.target.reset();
         }
+    });
+    
+    const deleteAdv = (arr) => {
+        arr.forEach(element => {
+            element.remove();
+        });
+    };
 
+    deleteAdv(adv);
+
+    const makeChanges = () => {
+        genre.textContent = 'Драма';
+    
+        poster.style.backgroundImage = "url('../img/bg.jpg')";
+    };
+
+    makeChanges();
+    
+    
+
+    function createMovieList(films, parent){
+        parent.innerHTML = '';
+        films.sort().forEach((element, i) => {
+            parent.innerHTML += `
+                <li class="promo__interactive-item">
+                    ${++i} ${element}
+                    <div class="delete"></div>
+                </li>`;
+        });
+
+        document.querySelectorAll('.delete').forEach((btn, i) => {
+            btn.addEventListener('click', () => {
+                movieDB.movies.splice(i, 1);
+                createMovieList(films, parent);
+            });
+        });
     }
-}
+    
+    createMovieList(movieDB.movies, movieList);
 
-rememberMyFilms();
+   
+});
 
-function writeYourGenres() {
-    for (let i = 0; i < 3; i++) {
-        personalMovieDB.genres[i] = prompt(`Ваш любимый жанр под номером ${i + 1}`, '');
-    }
-}
-
-writeYourGenres();
-
-function detectPersonalLevel() {
-    if (personalMovieDB.count <= 10) {
-        console.log('Просмотрено довольно мало фильмов');
-    } else if (10 < personalMovieDB.count && personalMovieDB.count <= 30) {
-        console.log('Вы классический зритель');
-    } else if (personalMovieDB.count > 30) {
-        console.log('Вы киноман');
-    } else {
-        console.log('Произошла ошибка');
-    }
-}
-
-detectPersonalLevel();
-
-function showMyDB() {
-    if (!personalMovieDB.privat) {
-        console.log(personalMovieDB);
-    }
-}
-
-showMyDB();
